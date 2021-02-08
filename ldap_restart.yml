@@ -1,0 +1,52 @@
+---
+  - name: LDAP restart on host
+    hosts: all 
+    become: yes
+    tasks:
+      - name: Stopping sssd service
+        service:
+          name: sssd
+          state: stopped
+
+      - name: Stopping nslcd service
+        service:
+          name: nslcd
+          state: stopped
+
+      - name: Waiting one second
+        pause:
+          seconds: 1
+
+      - name: Collect files and directories form path /var/log/sssd/sssd_default.log
+        block:
+          - name: Collect files
+            find:
+              paths: "/var/lib/sss/db/"
+              hidden: False
+              recurse: True
+              file_type: any  # Added in ansible 2.3
+            register: collected_files
+
+          - name: Remove collected files and directories
+            file:
+              path: "{{ item.path }}"
+              state: absent
+            with_items: >
+              {{
+                collected_files.files
+              }}
+
+      - name: Remove file /var/log/sssd/sssd_default.log
+        file:
+          path: /var/log/sssd/sssd_default.log
+          state: absent
+
+      - name: Starting sssd service
+        service:
+          name: sssd
+          state: started
+
+      - name: Starting nslcd service
+        service:
+          name: nslcd
+          state: started
