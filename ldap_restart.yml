@@ -24,7 +24,7 @@
               paths: "/var/lib/sss/db/"
               hidden: False
               recurse: True
-              file_type: any  # Added in ansible 2.3
+              file_type: any  #Added in ansible 2.3
             register: collected_files
 
           - name: Remove collected files and directories
